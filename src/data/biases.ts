@@ -10,6 +10,10 @@ export interface Bias {
   research: string;
   defense: string;
   relatedBiasIds: string[];
+  deepDive?: {
+    title: string;
+    content: string;
+  };
 }
 
 export const biases: Bias[] = [
@@ -1343,22 +1347,36 @@ export const biases: Bias[] = [
     chapter: 60,
     category: 'statistical',
     summary:
-      'Small samples do not reliably reflect the characteristics of the underlying population.',
+      'We instinctively treat small samples as though they are just as reliable as large ones. In reality, small groups produce wildly variable results — extreme highs and extreme lows — simply by chance. A handful of data points tells you almost nothing about the true underlying pattern, yet we routinely draw sweeping conclusions from them. The smaller the sample, the more likely it is to look dramatically different from the population it was drawn from. This is not a subtle statistical footnote; it is one of the most common reasoning errors in everyday life, medicine, business, and policy.',
     examples: [
       'A restaurant gets two bad reviews out of three, and diners avoid it — but three reviews is far too few to judge.',
       'A small school appears to be top-performing because a few gifted students disproportionately affect the average.',
       'A drug trial with 12 patients shows promising results, but the sample is too small to be reliable.',
     ],
     research:
-      'Tversky and Kahneman described the "belief in the law of small numbers" in 1971, showing that even statisticians overestimate the reliability of small samples.',
+      'Tversky and Kahneman described the "belief in the law of small numbers" in 1971, showing that even trained statisticians overestimate the reliability of small samples. They demonstrated that people expect patterns in random sequences far too early and treat tiny datasets as miniature copies of the population. The mathematical reality is straightforward: variance is inversely proportional to sample size. The smaller the group, the more extreme and unreliable any statistic derived from it will be.',
     defense:
-      'Always check sample sizes before drawing conclusions. Demand large, representative samples and be skeptical of results from small groups.',
+      'Always check sample sizes before drawing conclusions. Demand large, representative samples and be deeply skeptical of results from small groups. When you see a ranking or league table, ask how many observations each entry is based on — the extremes are almost always the smallest samples. Remember: extraordinary results from small samples are not extraordinary at all; they are mathematically inevitable.',
     relatedBiasIds: [
       'gamblers-fallacy',
       'clustering-illusion',
       'self-selection-bias',
       'base-rate-neglect',
     ],
+    deepDive: {
+      title: 'The Supermarket Crime Paradox',
+      content: `Imagine a retail chain decides to investigate crime rates across all of its supermarkets. They rank every store by the number of shoplifting incidents per customer. The results look alarming: the stores at the very top of the crime league table — the apparent hotspots — are almost all tiny convenience stores and small neighbourhood outlets. Management concludes that small stores have a serious crime problem and begins pouring security resources into them.
+
+But there is a catch. If you look at the bottom of the table — the stores with the lowest crime rates — you find the same thing: small stores again. The tiny outlets dominate both extremes.
+
+This is the Law of Small Numbers in action. It has nothing to do with small stores being better or worse at preventing crime. It is pure mathematics. A large supermarket serving thousands of customers per week will produce a crime rate that is stable and close to the true average, simply because it has a large sample. A small store serving a few dozen customers will produce a rate that swings wildly. One bad week with two shoplifters and it rockets to the top of the table. One quiet month and it drops to the bottom. The small sample size means the result is dominated by random noise rather than any real underlying pattern.
+
+This is exactly the same phenomenon that crops up everywhere. The counties with the highest rates of kidney cancer in the United States are mostly small, rural, sparsely populated counties. So are the counties with the lowest rates. Small populations produce extreme statistics — in both directions — because there simply aren't enough data points to smooth out the randomness.
+
+The lesson is profound and counterintuitive: when you see a league table, a ranking, or any comparison between groups, look at the sample sizes first. The entries at the extremes — the best and the worst performers — are overwhelmingly likely to be the smallest groups. Their position tells you almost nothing about whether they are genuinely different. It tells you only that their sample was small enough for chance to dominate.
+
+Before you act on a ranking, ask: "How many observations is this based on?" If the answer is "not many," the ranking is noise dressed up as signal.`,
+    },
   },
   {
     id: 'expectations',
