@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { ReactFlowProvider, useReactFlow } from '@xyflow/react';
 import { FlowCanvas } from './components/FlowCanvas';
 import { BiasModal } from './components/BiasModal';
-import { Legend } from './components/Legend';
+
 import { SearchBar } from './components/SearchBar';
 import { biases, biasMap } from './data/biases';
 import { generateLayout } from './utils/layout';
@@ -53,7 +53,6 @@ function AppInner() {
         resultCount={matchCount}
         totalCount={biasNodeCount}
       />
-      <Legend />
       <FlowCanvas
         nodes={nodes}
         edges={edges}

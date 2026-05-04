@@ -2,7 +2,6 @@ import { useCallback, useMemo, useRef } from 'react';
 import {
   ReactFlow,
   Controls,
-  MiniMap,
   Background,
   BackgroundVariant,
   type Node,
@@ -97,16 +96,6 @@ export function FlowCanvas({ nodes, edges, searchQuery, onBiasClick }: FlowCanva
         elementsSelectable={false}
       >
         <Controls position="bottom-right" showInteractive={false} />
-        <MiniMap
-          position="top-right"
-          nodeColor={(node) => {
-            if (node.type === 'categoryLabel') return 'transparent';
-            const cat = (node.data as { category: { color: string } }).category;
-            return cat?.color || '#94a3b8';
-          }}
-          maskColor="rgba(255,255,255,0.7)"
-          className="!bg-white/80 !border !border-gray-200 !rounded-lg !shadow-lg"
-        />
         <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#e2e8f0" />
       </ReactFlow>
     </div>
