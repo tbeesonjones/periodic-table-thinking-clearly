@@ -2,8 +2,6 @@ import { useCallback, useMemo, useRef } from 'react';
 import {
   ReactFlow,
   Controls,
-  Background,
-  BackgroundVariant,
   type Node,
   type Edge,
   type NodeMouseHandler,
@@ -12,11 +10,16 @@ import '@xyflow/react/dist/style.css';
 
 import { BiasNode } from './BiasNode';
 import { CategoryLabel } from './CategoryLabel';
+import { BrainBackgroundNode } from './BrainBackground';
+import { HeaderNode } from './HeaderNode';
+
 import type { Bias } from '../data/biases';
 
 const nodeTypes = {
   biasNode: BiasNode,
   categoryLabel: CategoryLabel,
+  brainBackground: BrainBackgroundNode,
+  headerNode: HeaderNode,
 };
 
 interface FlowCanvasProps {
@@ -34,7 +37,7 @@ export function FlowCanvas({ nodes, edges, searchQuery, onBiasClick }: FlowCanva
 
     const query = searchQuery.toLowerCase();
     return nodes.map((node) => {
-      if (node.type === 'categoryLabel') return node;
+      if (node.type !== 'biasNode') return node;
       const matches = (node.data as { label: string }).label.toLowerCase().includes(query);
       return {
         ...node,
@@ -96,7 +99,6 @@ export function FlowCanvas({ nodes, edges, searchQuery, onBiasClick }: FlowCanva
         elementsSelectable={false}
       >
         <Controls position="bottom-right" showInteractive={false} />
-        <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#e2e8f0" />
       </ReactFlow>
     </div>
   );

@@ -127,5 +127,49 @@ export function generateLayout(biases: Bias[]): { nodes: Node[]; edges: Edge[] }
     }
   }
 
+  // Add header and footer nodes
+  const contentPadding = 100;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const node of nodes) {
+    const w = (node.style?.width as number) || NODE_WIDTH;
+    const h = (node.style?.height as number) || NODE_HEIGHT;
+    minX = Math.min(minX, node.position.x);
+    minY = Math.min(minY, node.position.y);
+    maxX = Math.max(maxX, node.position.x + w);
+    maxY = Math.max(maxY, node.position.y + h);
+  }
+  const totalWidth = maxX - minX;
+  const headerHeight = 100;
+  const gap = 40;
+
+  // Header above all content
+  nodes.push({
+    id: 'header',
+    type: 'headerNode',
+    position: { x: minX, y: minY - headerHeight - gap },
+    data: { contentWidth: totalWidth },
+    draggable: false,
+    selectable: false,
+  });
+
+  // Brain background node sized to cover all content (including header)
+  const fullMinY = minY - headerHeight - gap;
+  const fullMaxY = maxY;
+  const contentWidth = totalWidth + contentPadding * 2;
+  const contentHeight = fullMaxY - fullMinY + contentPadding * 2;
+  const bgWidth = contentWidth * 2;
+  const bgHeight = contentHeight * 2;
+  const centerX = minX - contentPadding + contentWidth / 2;
+  const centerY = fullMinY - contentPadding + contentHeight / 2;
+  nodes.unshift({
+    id: 'brain-bg',
+    type: 'brainBackground',
+    position: { x: centerX - bgWidth / 2, y: centerY - bgHeight / 2 },
+    data: { width: bgWidth, height: bgHeight },
+    draggable: false,
+    selectable: false,
+    style: { zIndex: -1 },
+  });
+
   return { nodes, edges };
 }
