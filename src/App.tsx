@@ -1,26 +1,16 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import { ReactFlowProvider, useReactFlow } from '@xyflow/react';
 import { FlowCanvas } from './components/FlowCanvas';
 import { BiasModal } from './components/BiasModal';
-
-import { SearchBar } from './components/SearchBar';
 import { biases, biasMap } from './data/biases';
 import { generateLayout } from './utils/layout';
 import type { Bias } from './data/biases';
 
 function AppInner() {
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedBias, setSelectedBias] = useState<Bias | null>(null);
   const { setCenter } = useReactFlow();
 
   const { nodes, edges } = useMemo(() => generateLayout(biases), []);
-
-  const biasNodeCount = nodes.filter((n) => n.type === 'biasNode').length;
-  const matchCount = useMemo(() => {
-    if (!searchQuery.trim()) return biasNodeCount;
-    const q = searchQuery.toLowerCase();
-    return biases.filter((b) => b.name.toLowerCase().includes(q)).length;
-  }, [searchQuery, biasNodeCount]);
 
   const handleBiasClick = useCallback((bias: Bias) => {
     setSelectedBias(bias);
@@ -47,16 +37,9 @@ function AppInner() {
 
   return (
     <div className="w-full h-full relative">
-      <SearchBar
-        value={searchQuery}
-        onChange={setSearchQuery}
-        resultCount={matchCount}
-        totalCount={biasNodeCount}
-      />
       <FlowCanvas
         nodes={nodes}
         edges={edges}
-        searchQuery={searchQuery}
         onBiasClick={handleBiasClick}
       />
       {selectedBias && (
