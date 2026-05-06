@@ -1125,7 +1125,7 @@ export const biases: Bias[] = [
     chapter: 50,
     category: 'decision-making',
     summary:
-      'We prefer immediate rewards over larger future rewards, leading to inconsistent decisions over time.',
+      'Preferring now over later is rational. The problem is that we discount the future at an inconsistent rate — steeply for the immediate moment, then almost flat for anything further out. This leads to preference reversals: choices we make today that our future selves would never agree to, and commitments about the future that we reliably break the moment they become the present.',
     examples: [
       'People choose $100 today over $110 tomorrow but would choose $110 in 31 days over $100 in 30 days — the same time gap.',
       'Employees fail to save for retirement because spending now feels more tangible than future comfort.',
