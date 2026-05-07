@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Bias } from '../data/biases';
 import { categories } from '../data/categories';
 import { biasMap } from '../data/biases';
@@ -25,6 +25,20 @@ export function BiasModal({ bias, onClose, onNavigate }: BiasModalProps) {
     },
     [onClose, showDeepDive],
   );
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showDeepDive) {
+          setShowDeepDive(false);
+        } else {
+          onClose();
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, showDeepDive]);
 
   if (showDeepDive && bias.deepDive) {
     return (
