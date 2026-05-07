@@ -18,7 +18,7 @@ export default defineConfig({
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/',
+        start_url: '/periodic-table-thinking-clearly/',
         icons: [
           {
             src: 'pwa-192x192.png',
