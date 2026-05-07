@@ -1282,10 +1282,8 @@ export const biases: Bias[] = [
     summary:
       'Moving items between categories can raise the average of both categories without any actual improvement.',
     examples: [
-      'Reclassifying cancer stages can make survival rates appear to improve in both early and late stages, even if no patient lives longer.',
-      'Transferring a below-average student from a weak school to a strong school raises the average at both schools.',
-      'Moving a mediocre performer from a low-performing team to a high-performing team improves the average performance of both teams.',
-    ],
+      'A school has a top set averaging 80% and a bottom set averaging 40%. The worst student in the top set scores 55%. Move them to the bottom set and the top set average rises (the weakest link is gone) while the bottom set average also rises (55% is above their average). Both classes "improved" but nothing actually changed.',
+      'Reclassifying cancer stages can make survival rates appear to improve in both early and late stages, even if no patient lives longer.'],
     research:
       'Alvan Feinstein, Daniel Sosin, and Carolyn Wells described this statistical artifact in 1985 in the context of cancer staging. It is named after Will Rogers\' quip about Oklahomans moving to California.',
     defense:
