@@ -10,10 +10,12 @@ function HeaderNodeComponent({ data }: NodeProps) {
       style={{ width: contentWidth }}
     >
       <h1 className="text-4xl text-slate-800 tracking-tight leading-tight">
-        <span style={{ fontStyle: 'italic' }}>The Art of Thinking Clearly</span>
-        {' '}by Rolf Dobelli: an Infographic
+        The Periodic Table of Thinking Clearly
       </h1>
-      <p className="text-sm text-slate-400 mt-3">
+      <p className="text-lg text-slate-500 mt-1">
+        Based on <span style={{ fontStyle: 'italic' }}>The Art of Thinking Clearly</span> by Rolf Dobelli
+      </p>
+      <p className="text-sm text-slate-400 mt-2">
         Produced without permission &bull; Tim Beeson-Jones
       </p>
     </div>

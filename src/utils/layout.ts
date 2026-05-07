@@ -2,108 +2,99 @@ import type { Node, Edge } from '@xyflow/react';
 import type { Bias } from '../data/biases';
 import { categories, type CategoryId } from '../data/categories';
 
-const CATEGORY_PADDING = 40;
-const NODE_WIDTH = 180;
-const NODE_HEIGHT = 40;
-const NODE_GAP_X = 20;
-const NODE_GAP_Y = 16;
-const COLS_PER_CATEGORY = 3;
-const GRID_COLS = 4;
-const GRID_GAP_X = 80;
-const GRID_GAP_Y = 80;
+const CELL_SIZE = 90;
+const CELL_GAP = 8;
+const CELL_STEP = CELL_SIZE + CELL_GAP;
+
+// Periodic table has 18 columns and 7 main rows + 2 lanthanide/actinide rows
+// We'll use 18 columns and fill biases into a periodic-table-shaped grid
+// Row shapes (which columns are filled) — mimicking the real periodic table
+const TABLE_ROWS: number[][] = [
+  [0, 17],                                                          // Row 1: 2 elements
+  [0, 1, 12, 13, 14, 15, 16, 17],                                  // Row 2: 8 elements
+  [0, 1, 12, 13, 14, 15, 16, 17],                                  // Row 3: 8 elements
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], // Row 4: 18 elements
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], // Row 5: 18 elements
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], // Row 6: 18 elements
+  [0, 1, 2, 3, 4, 5, 6, 7, 8],                                     // Row 7: 9 elements (partial)
+  // Separated rows (lanthanides/actinides equivalent)
+  [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],              // Row 8: 14 elements
+  [3, 4, 5, 6, 7],                                                   // Row 9: 5 elements
+];
+// Total slots: 2 + 8 + 8 + 18 + 18 + 18 + 9 + 14 + 5 = 100 (we have 99 biases)
+
+const LANTHANIDE_GAP = 30; // extra vertical gap before the separated rows
+
+// Generate a short "element symbol" from a bias name
+function makeSymbol(name: string): string {
+  // Take meaningful initials, up to 2-3 chars
+  const words = name.replace(/[^a-zA-Z\s]/g, '').split(/\s+/).filter(Boolean);
+  if (words.length === 1) {
+    return words[0].substring(0, 2);
+  }
+  // Use first letter of first two significant words
+  const skip = new Set(['of', 'the', 'and', 'to', 'in', 'a', 'an', 'or', 'for', 'with']);
+  const significant = words.filter(w => !skip.has(w.toLowerCase()));
+  if (significant.length >= 2) {
+    return (significant[0][0] + significant[1][0]).toUpperCase();
+  }
+  return words[0].substring(0, 2);
+}
+
+// Category order for filling — groups biases by category so same colours cluster
+const CATEGORY_FILL_ORDER: CategoryId[] = [
+  'decision-making',
+  'statistical',
+  'self-deception',
+  'information-processing',
+  'emotional',
+  'professional',
+  'causal-reasoning',
+  'social-influence',
+  'memory-perception',
+  'social-group',
+];
 
 export function generateLayout(biases: Bias[]): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
-  // Group biases by category
-  const grouped = new Map<CategoryId, Bias[]>();
-  for (const bias of biases) {
-    const list = grouped.get(bias.category) || [];
-    list.push(bias);
-    grouped.set(bias.category, list);
+  // Sort biases by category order so colours cluster together
+  const sortedBiases = [...biases].sort((a, b) => {
+    return CATEGORY_FILL_ORDER.indexOf(a.category) - CATEGORY_FILL_ORDER.indexOf(b.category);
+  });
+
+  // Build the list of grid slots
+  const slots: { col: number; row: number; x: number; y: number }[] = [];
+  for (let rowIdx = 0; rowIdx < TABLE_ROWS.length; rowIdx++) {
+    const cols = TABLE_ROWS[rowIdx];
+    const extraY = rowIdx >= 7 ? LANTHANIDE_GAP : 0;
+    const y = rowIdx * CELL_STEP + extraY;
+    for (const col of cols) {
+      slots.push({ col, row: rowIdx, x: col * CELL_STEP, y });
+    }
   }
 
-  const categoryIds = Object.keys(categories) as CategoryId[];
-  let gridX = 0;
-  let gridY = 0;
-  let col = 0;
-  const maxHeightInRow: number[] = [0];
-  let rowIndex = 0;
+  // Place biases into slots
+  sortedBiases.forEach((bias, i) => {
+    if (i >= slots.length) return;
+    const slot = slots[i];
+    const cat = categories[bias.category];
 
-  // First pass: calculate category group sizes and positions
-  const categoryPositions = new Map<CategoryId, { x: number; y: number; width: number; height: number }>();
-
-  for (const catId of categoryIds) {
-    const catBiases = grouped.get(catId) || [];
-    const rows = Math.ceil(catBiases.length / COLS_PER_CATEGORY);
-    const groupWidth = COLS_PER_CATEGORY * (NODE_WIDTH + NODE_GAP_X) - NODE_GAP_X + CATEGORY_PADDING * 2;
-    const groupHeight = rows * (NODE_HEIGHT + NODE_GAP_Y) - NODE_GAP_Y + CATEGORY_PADDING * 2 + 40; // +40 for label
-
-    if (col >= GRID_COLS) {
-      col = 0;
-      rowIndex++;
-      gridY += maxHeightInRow[rowIndex - 1] + GRID_GAP_Y;
-      maxHeightInRow.push(0);
-    }
-
-    // Calculate x position based on previous categories in this row
-    gridX = 0;
-    let currentCol = 0;
-    for (const prevCatId of categoryIds) {
-      if (prevCatId === catId) break;
-      const prevPos = categoryPositions.get(prevCatId);
-      if (prevPos) {
-        const prevRow = Math.floor(currentCol / GRID_COLS);
-        if (prevRow === rowIndex) {
-          gridX = prevPos.x + prevPos.width + GRID_GAP_X;
-        }
-        currentCol++;
-      }
-    }
-
-    categoryPositions.set(catId, { x: gridX, y: gridY, width: groupWidth, height: groupHeight });
-    maxHeightInRow[rowIndex] = Math.max(maxHeightInRow[rowIndex], groupHeight);
-    col++;
-  }
-
-  // Second pass: create nodes
-  for (const catId of categoryIds) {
-    const cat = categories[catId];
-    const catBiases = grouped.get(catId) || [];
-    const pos = categoryPositions.get(catId)!;
-
-    // Category group node
     nodes.push({
-      id: `cat-${catId}`,
-      type: 'categoryLabel',
-      position: { x: pos.x, y: pos.y },
-      data: { label: cat.name, color: cat.color, bgColor: cat.bgColor, borderColor: cat.borderColor, width: pos.width, height: pos.height },
-      draggable: false,
-      selectable: false,
-      style: { width: pos.width, height: pos.height, zIndex: 0 },
+      id: bias.id,
+      type: 'biasNode',
+      position: { x: slot.x, y: slot.y },
+      data: {
+        label: bias.name,
+        category: cat,
+        bias,
+        symbol: makeSymbol(bias.name),
+        number: bias.chapter,
+      },
+      style: { zIndex: 1 },
     });
-
-    // Bias nodes within category
-    catBiases.forEach((bias, i) => {
-      const biasCol = i % COLS_PER_CATEGORY;
-      const biasRow = Math.floor(i / COLS_PER_CATEGORY);
-      const x = pos.x + CATEGORY_PADDING + biasCol * (NODE_WIDTH + NODE_GAP_X);
-      const y = pos.y + CATEGORY_PADDING + 40 + biasRow * (NODE_HEIGHT + NODE_GAP_Y);
-
-      nodes.push({
-        id: bias.id,
-        type: 'biasNode',
-        position: { x, y },
-        data: {
-          label: bias.name,
-          category: cat,
-          bias,
-        },
-        style: { zIndex: 1 },
-      });
-    });
-  }
+  });
 
   // Create edges for related biases
   const biasSet = new Set(biases.map(b => b.id));
@@ -121,28 +112,53 @@ export function generateLayout(biases: Bias[]): { nodes: Node[]; edges: Edge[] }
         source: bias.id,
         target: relatedId,
         type: 'default',
-        style: { stroke: '#94a3b8', strokeWidth: 1, opacity: 0.3 },
+        style: { stroke: '#94a3b8', strokeWidth: 1, opacity: 0.15 },
         animated: false,
       });
     }
   }
 
-  // Add header and footer nodes
-  const contentPadding = 100;
+  // Calculate content bounds
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const node of nodes) {
-    const w = (node.style?.width as number) || NODE_WIDTH;
-    const h = (node.style?.height as number) || NODE_HEIGHT;
     minX = Math.min(minX, node.position.x);
     minY = Math.min(minY, node.position.y);
-    maxX = Math.max(maxX, node.position.x + w);
-    maxY = Math.max(maxY, node.position.y + h);
+    maxX = Math.max(maxX, node.position.x + CELL_SIZE);
+    maxY = Math.max(maxY, node.position.y + CELL_SIZE);
   }
   const totalWidth = maxX - minX;
+
+  // Category legend — placed in the gap area (rows 1-3 have empty middle columns)
+  // Position it roughly in the middle of the table where there's empty space
+  const legendX = 2 * CELL_STEP + 20;
+  const legendY = 0.5 * CELL_STEP;
+  const legendCols = 2;
+
+  CATEGORY_FILL_ORDER.forEach((catId, i) => {
+    const cat = categories[catId];
+    const legendCol = i % legendCols;
+    const legendRow = Math.floor(i / legendCols);
+    nodes.push({
+      id: `legend-${catId}`,
+      type: 'categoryLabel',
+      position: {
+        x: legendX + legendCol * (CELL_SIZE * 2.5 + 10),
+        y: legendY + legendRow * 28,
+      },
+      data: {
+        label: cat.name,
+        color: cat.color,
+        bgColor: cat.bgColor,
+        borderColor: cat.borderColor,
+      },
+      draggable: false,
+      selectable: false,
+    });
+  });
+
+  // Header
   const headerHeight = 100;
   const gap = 40;
-
-  // Header above all content
   nodes.push({
     id: 'header',
     type: 'headerNode',
@@ -152,7 +168,8 @@ export function generateLayout(biases: Bias[]): { nodes: Node[]; edges: Edge[] }
     selectable: false,
   });
 
-  // Brain background node sized to cover all content (including header)
+  // Brain background
+  const contentPadding = 100;
   const fullMinY = minY - headerHeight - gap;
   const fullMaxY = maxY;
   const contentWidth = totalWidth + contentPadding * 2;
